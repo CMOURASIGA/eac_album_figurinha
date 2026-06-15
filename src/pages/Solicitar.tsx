@@ -83,17 +83,18 @@ export function Solicitar() {
       }
 
       // Direct insertion bypassing admin
+      const encounterName = encounters.find(e => e.id === encounterId)?.name || 'EAC';
+
       const { data, error } = await supabase.from('figurinha').insert({
           nome: name.toUpperCase(),
           encontro_id: finalEncounterId,
-          foto_url: photoUrl
+          foto_url: photoUrl,
+          texto_inferior: isNucleo ? 'NÚCLEO' : encounterName
       }).select().single();
 
       if (error) {
           throw error;
       }
-
-      const encounterName = encounters.find(e => e.id === encounterId)?.name || 'EAC';
 
       saveSharedSticker({
           id: data.id,
