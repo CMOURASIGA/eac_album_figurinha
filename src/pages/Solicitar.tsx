@@ -75,8 +75,6 @@ export function Solicitar() {
       const { data, error } = await supabase.from('figurinha').insert({
           nome: name.toUpperCase(),
           encontro_id: encounterId,
-          tipo: isNucleo ? 'NÚCLEO' : 'PARTICIPANTE',
-          raridade: isNucleo ? 'ESPECIAL' : 'COMUM',
           foto_url: photoUrl
       }).select().single();
 
