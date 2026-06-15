@@ -77,8 +77,7 @@ export function Solicitar() {
           encontro_id: encounterId,
           tipo: isNucleo ? 'NÚCLEO' : 'PARTICIPANTE',
           raridade: isNucleo ? 'ESPECIAL' : 'COMUM',
-          foto_url: photoUrl,
-          status: 'APROVADA'
+          foto_url: photoUrl
       }).select().single();
 
       if (error) {
