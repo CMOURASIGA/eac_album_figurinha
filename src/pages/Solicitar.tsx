@@ -71,10 +71,21 @@ export function Solicitar() {
     setIsLoading(true);
 
     try {
+      // Migrate old IDs to prevent UUID parsing errors
+      let finalEncounterId = encounterId;
+      if (finalEncounterId === '1') finalEncounterId = '00000000-0000-0000-0000-000000000001';
+      if (finalEncounterId === '2') finalEncounterId = '00000000-0000-0000-0000-000000000002';
+      
+      // If it's still not a valid uuid (like an old random base36 string), generate a fallback
+      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+      if (!uuidRegex.test(finalEncounterId)) {
+          finalEncounterId = '00000000-0000-0000-0000-000000000001'; // Default fallback
+      }
+
       // Direct insertion bypassing admin
       const { data, error } = await supabase.from('figurinha').insert({
           nome: name.toUpperCase(),
-          encontro_id: encounterId,
+          encontro_id: finalEncounterId,
           foto_url: photoUrl
       }).select().single();
 

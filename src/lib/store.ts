@@ -34,8 +34,8 @@ interface AppState {
 }
 
 const initialEncounters: Encounter[] = [
-  { id: '1', name: '35º EAC Porciúncula', logoUrl: 'https://i.imgur.com/c5XQ7TW.png' },
-  { id: '2', name: '36º EAC Porciúncula', logoUrl: 'https://i.imgur.com/LA9Egm4.png' },
+  { id: '00000000-0000-0000-0000-000000000001', name: '35º EAC Porciúncula', logoUrl: 'https://i.imgur.com/c5XQ7TW.png' },
+  { id: '00000000-0000-0000-0000-000000000002', name: '36º EAC Porciúncula', logoUrl: 'https://i.imgur.com/LA9Egm4.png' },
 ];
 
 export const useStore = create<AppState>()(
@@ -46,7 +46,7 @@ export const useStore = create<AppState>()(
 
       addEncounter: (name) => {
         const newEncounter = {
-          id: Math.random().toString(36).substring(7),
+          id: crypto.randomUUID(),
           name,
         };
         set((state) => ({ encounters: [...state.encounters, newEncounter] }));
