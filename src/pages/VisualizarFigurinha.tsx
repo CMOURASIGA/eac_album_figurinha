@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useStore } from '../lib/store';
 import { StickerItem } from '../components/StickerItem';
 import { supabase } from '../lib/supabase';
-import { CheckCircle, AlertCircle, Loader2, ArrowLeft, Download, QrCode } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader2, ArrowLeft, Download, QrCode, Link as LinkIcon } from 'lucide-react';
 import QRCode from 'react-qr-code';
 import { cn } from '../lib/utils';
 
@@ -16,6 +16,7 @@ export function VisualizarFigurinha() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
   const [isOldFormat, setIsOldFormat] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   const isAlreadySaved = stickers.some(s => s.id === id);
 
@@ -142,12 +143,24 @@ export function VisualizarFigurinha() {
                                <QrCode /> Compartilhar Figurinha
                             </h3>
                             <p className="text-sm text-gray-500 mb-6">
-                                Mostre este QR Code para um amigo escanear e salvar sua figurinha no álbum dele.
+                                Mostre este QR Code para um amigo escanear, ou copie o link para enviar nas redes sociais.
                             </p>
                             
-                            <div className="bg-white p-4 border-2 border-gray-100 rounded-xl inline-block shadow-sm mb-2">
+                            <div className="bg-white p-4 border-2 border-gray-100 rounded-xl inline-block shadow-sm mb-6">
                                 <QRCode value={shareUrl} size={180} />
                             </div>
+
+                            <button 
+                                onClick={() => {
+                                    navigator.clipboard.writeText(shareUrl);
+                                    setCopied(true);
+                                    setTimeout(() => setCopied(false), 2000);
+                                }}
+                                className="w-full bg-blue-50 hover:bg-blue-100 text-blue-700 py-3 rounded-lg font-bold flex items-center justify-center gap-2 transition-colors border border-blue-200"
+                            >
+                                {copied ? <CheckCircle className="h-5 w-5" /> : <LinkIcon className="h-5 w-5" />}
+                                {copied ? 'LINK COPIADO!' : 'COPIAR LINK'}
+                            </button>
                         </div>
                     </div>
                 </div>
