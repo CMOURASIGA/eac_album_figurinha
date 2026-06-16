@@ -43,16 +43,18 @@ export function VisualizarFigurinha() {
          } else {
             // Mapeia do banco para a interface local
             const encounterName = data.encontro?.nome || 'EAC';
-            const isNucleo = data.tipo === 'NÚCLEO';
+            const isNucleo = data.tipo === 'NÚCLEO' || data.texto_inferior === 'NÚCLEO';
+            const isMomento = data.texto_inferior === 'RECORDAÇÃO OFICIAL';
+
             const mapped = {
                id: data.id,
                requestId: 'imported',
                name: data.nome,
                photoUrl: data.foto_url,
                encounterId: data.encontro_id,
-               bottomText: isNucleo ? 'NÚCLEO' : encounterName,
+               bottomText: data.texto_inferior || (isNucleo ? 'NÚCLEO' : encounterName),
                isNucleo: isNucleo,
-               rarity: isNucleo ? 'ESPECIAL' : 'COMUM',
+               rarity: isMomento ? 'MOMENTO' : (isNucleo ? 'ESPECIAL' : 'COMUM'),
                page: 1, 
                position: 1
             };

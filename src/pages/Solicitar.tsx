@@ -11,10 +11,12 @@ export function Solicitar() {
   const { encounters, saveSharedSticker } = useStore();
   const navigate = useNavigate();
   
+  const [stickerType, setStickerType] = useState<'PESSOA' | 'MOMENTO'>('PESSOA');
+  
   const [name, setName] = useState('');
-  const [dob, setDob] = useState('');
+  const [dob, setDob] = useState(''); // Only used if PESSOA
   const [encounterId, setEncounterId] = useState(encounters[0]?.id || '');
-  const [isNucleo, setIsNucleo] = useState(false);
+  const [isNucleo, setIsNucleo] = useState(false); // Only if PESSOA
 
   React.useEffect(() => {
     if (encounters.length > 0 && !encounters.some(e => e.id === encounterId)) {
@@ -69,9 +71,17 @@ export function Solicitar() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !dob || (!encounterId && !isNucleo) || !photoUrl) {
-      alert('Preencha os campos obrigatórios e envie uma foto.');
-      return;
+    
+    if (stickerType === 'PESSOA') {
+      if (!name || !dob || (!encounterId && !isNucleo) || !photoUrl) {
+        alert('Preencha os campos obrigatórios e envie uma foto.');
+        return;
+      }
+    } else {
+      if (!name || !encounterId || !photoUrl) {
+        alert('Preencha os campos obrigatórios e envie uma foto.');
+        return;
+      }
     }
 
     setIsLoading(true);
@@ -85,18 +95,26 @@ export function Solicitar() {
       
       // Defesa contra estados defasados no momento do submit: 
       // Se o ID selecionado não estiver na lista de encontros carregados do banco, pega o primeiro válido.
-      if (!isNucleo && !encounters.some(e => e.id === finalEncounterId) && encounters.length > 0) {
+      if (stickerType === 'PESSOA' && !isNucleo && !encounters.some(e => e.id === finalEncounterId) && encounters.length > 0) {
           finalEncounterId = encounters[0].id;
-          console.warn("Estado do encounterId estava defasado. Forçando para o primeiro válido: ", finalEncounterId);
+      } else if (stickerType === 'MOMENTO' && !encounters.some(e => e.id === finalEncounterId) && encounters.length > 0) {
+          finalEncounterId = encounters[0].id;
       }
 
       const encounterName = encounters.find(e => e.id === finalEncounterId)?.name || 'EAC';
+      
+      const bottomText = stickerType === 'MOMENTO' ? 'RECORDAÇÃO OFICIAL' : (isNucleo ? 'NÚCLEO' : encounterName);
+      const isNucl = stickerType === 'PESSOA' ? isNucleo : false;
+      const rarity = stickerType === 'MOMENTO' ? 'MOMENTO' : (isNucl ? 'ESPECIAL' : 'COMUM');
 
       const payload = {
           nome: name.toUpperCase(),
-          encontro_id: isNucleo ? null : finalEncounterId?.trim(),
+          encontro_id: isNucl ? null : finalEncounterId?.trim(),
           foto_url: photoUrl,
-          texto_inferior: isNucleo ? 'NÚCLEO' : encounterName
+          texto_inferior: bottomText,
+          // We can't insert a custom type field to figurinha since it might not be mapped in supabase,
+          // But it relies on `texto_inferior` for display and the App infers things.
+          // Wait, 'rarity' is local state, not DB state.
       };
       
       console.log("Submitting figurinha with payload:", payload);
@@ -117,9 +135,9 @@ export function Solicitar() {
           name: name.toUpperCase(),
           photoUrl: photoUrl,
           encounterId: finalEncounterId,
-          bottomText: isNucleo ? 'NÚCLEO' : encounterName,
-          isNucleo: isNucleo,
-          rarity: isNucleo ? 'ESPECIAL' : 'COMUM',
+          bottomText: bottomText,
+          isNucleo: isNucl,
+          rarity: rarity as 'COMUM' | 'ESPECIAL' | 'MOMENTO',
           page: 1, 
           position: 1
       });
@@ -155,21 +173,40 @@ export function Solicitar() {
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 lg:px-8 pb-32 flex items-start justify-center">
       <div className="bg-white p-6 md:p-8 rounded-xl shadow-lg max-w-lg w-full border border-gray-100">
-        <div className="text-center mb-8">
+        <div className="text-center mb-6">
           <div className="mx-auto bg-[#0f4c81] w-12 h-12 rounded-full flex items-center justify-center mb-4">
             <Camera className="text-white h-6 w-6" />
           </div>
           <h1 className="text-2xl font-bold text-gray-900">Crie sua Figurinha</h1>
-          <p className="text-sm text-gray-500 mt-1">Preencha os dados e ajuste sua foto para figurinha EAC.</p>
+          <p className="text-sm text-gray-500 mt-1">Preencha os dados e ajuste a foto para o Álbum.</p>
+        </div>
+        
+        <div className="flex bg-gray-100 p-1 rounded-lg mb-8">
+          <button
+            type="button"
+            className={`flex-1 py-2 text-sm font-medium rounded-md transition-shadow ${stickerType === 'PESSOA' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => setStickerType('PESSOA')}
+          >
+            Minha Figurinha
+          </button>
+          <button
+            type="button"
+            className={`flex-1 py-2 text-sm font-medium rounded-md transition-shadow ${stickerType === 'MOMENTO' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+            onClick={() => setStickerType('MOMENTO')}
+          >
+            Recordação (Momento)
+          </button>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Nome na Figurinha</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {stickerType === 'PESSOA' ? 'Nome na Figurinha' : 'Título do Momento'}
+            </label>
             <input 
               type="text" 
               maxLength={20}
-              placeholder="Ex: JOÃO SILVA"
+              placeholder={stickerType === 'PESSOA' ? "Ex: JOÃO SILVA" : "Ex: GALERA ANIMADA"}
               value={name}
               onChange={e => setName(e.target.value)}
               className="w-full bg-gray-50 border border-gray-300 rounded-md py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0f4c81]"
@@ -178,48 +215,57 @@ export function Solicitar() {
             <p className="text-xs text-gray-500 mt-1">Máximo 20 caracteres.</p>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
-            <input 
-              type="date"
-              value={dob}
-              onChange={e => setDob(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-300 rounded-md py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0f4c81]"
-              required
-            />
-          </div>
+          {stickerType === 'PESSOA' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Data de Nascimento</label>
+              <input 
+                type="date"
+                value={dob}
+                onChange={e => setDob(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-300 rounded-md py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0f4c81]"
+                required={stickerType === 'PESSOA'}
+              />
+            </div>
+          )}
 
           <div>
-            <label className={`block text-sm font-medium mb-1 ${isNucleo ? 'text-gray-400' : 'text-gray-700'}`}>EAC Realizado</label>
+            <label className={`block text-sm font-medium mb-1 ${stickerType === 'PESSOA' && isNucleo ? 'text-gray-400' : 'text-gray-700'}`}>
+              {stickerType === 'PESSOA' ? 'EAC Realizado' : 'Vincular a qual EAC? (Opcional)'}
+            </label>
             <select 
               value={encounterId}
               onChange={e => setEncounterId(e.target.value)}
-              className={`w-full bg-gray-50 border rounded-md py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0f4c81] ${isNucleo ? 'opacity-50 cursor-not-allowed border-gray-200' : 'border-gray-300'}`}
-              required={!isNucleo}
-              disabled={isNucleo}
+              className={`w-full bg-gray-50 border rounded-md py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0f4c81] ${stickerType === 'PESSOA' && isNucleo ? 'opacity-50 cursor-not-allowed border-gray-200' : 'border-gray-300'}`}
+              required={stickerType === 'PESSOA' && !isNucleo}
+              disabled={stickerType === 'PESSOA' && isNucleo}
             >
-              <option disabled value="">Selecione...</option>
+              {stickerType === 'MOMENTO' && <option value="">Nenhum (Geral)</option>}
+              {stickerType === 'PESSOA' && <option disabled value="">Selecione...</option>}
               {encounters.map(enc => (
                 <option key={enc.id} value={enc.id}>{enc.name}</option>
               ))}
             </select>
           </div>
 
-          <div className="flex items-center">
-             <input 
-               id="isNucleo"
-               type="checkbox"
-               checked={isNucleo}
-               onChange={(e) => setIsNucleo(e.target.checked)}
-               className="h-4 w-4 text-[#0f4c81] rounded border-gray-300 focus:ring-[#0f4c81]"
-             />
-             <label htmlFor="isNucleo" className="ml-2 block text-sm text-gray-800 font-medium">
-                Faço parte do Núcleo
-             </label>
-          </div>
+          {stickerType === 'PESSOA' && (
+            <div className="flex items-center">
+               <input 
+                 id="isNucleo"
+                 type="checkbox"
+                 checked={isNucleo}
+                 onChange={(e) => setIsNucleo(e.target.checked)}
+                 className="h-4 w-4 text-[#0f4c81] rounded border-gray-300 focus:ring-[#0f4c81]"
+               />
+               <label htmlFor="isNucleo" className="ml-2 block text-sm text-gray-800 font-medium">
+                  Faço parte do Núcleo
+               </label>
+            </div>
+          )}
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Foto (Rosto legível, camisa EAC)</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              {stickerType === 'PESSOA' ? 'Foto (Rosto legível, camisa EAC)' : 'Foto (Momento marcante do EAC)'}
+            </label>
             
             {isCropping ? (
                <div className="relative w-full h-80 bg-black rounded-lg overflow-hidden">

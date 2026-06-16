@@ -28,19 +28,19 @@ export function StickerItem({ sticker, className, isPlaceholder, positionNumber 
   return (
     <div className={cn(
       "w-full aspect-[3/4] bg-gray-200 shadow-md flex flex-col overflow-hidden relative border-[6px] border-white font-sans",
-      sticker.isNucleo ? "border-amber-300 ring-2 ring-amber-500" : "",
+      sticker.rarity === 'MOMENTO' ? "border-pink-300 ring-2 ring-pink-500 rounded-lg" : (sticker.isNucleo ? "border-amber-300 ring-2 ring-amber-500" : ""),
       className
     )}>
       {/* Header */}
-      <div className="bg-[#0f4c81] text-white flex items-center px-1.5 py-1 z-10 shrink-0">
+      <div className={cn("text-white flex items-center px-1.5 py-1 z-10 shrink-0", sticker.rarity === 'MOMENTO' ? 'bg-[#e31837]' : 'bg-[#0f4c81]')}>
         <div className="bg-white rounded p-0.5 mr-1">
-          <Camera size={10} className="text-[#0f4c81]" />
+          {sticker.rarity === 'MOMENTO' ? <Heart size={10} className="text-[#e31837]" /> : <Camera size={10} className="text-[#0f4c81]" />}
         </div>
         <div className="flex-1 flex items-center overflow-hidden">
           <span className="font-semibold text-[8px] whitespace-nowrap overflow-hidden text-ellipsis mr-1">
-            Convocado
+            {sticker.rarity === 'MOMENTO' ? 'Recordação' : 'Convocado'}
           </span>
-          <span className="bg-white text-gray-900 font-bold text-[9px] px-1 py-0.5 rounded-sm whitespace-nowrap overflow-hidden text-ellipsis ml-auto">
+          <span className="bg-white text-gray-900 font-bold text-[9px] px-1 py-0.5 rounded-sm whitespace-nowrap overflow-hidden text-ellipsis ml-auto max-w-[80%]">
             {sticker.name}
           </span>
         </div>
@@ -83,7 +83,7 @@ export function StickerItem({ sticker, className, isPlaceholder, positionNumber 
           <div className="bg-white px-3 py-0.5 rounded-sm shadow-sm inline-block w-full">
             <span className={cn(
               "font-bold text-[10px] tracking-wide",
-              sticker.isNucleo ? "text-amber-600" : "text-gray-800"
+              sticker.rarity === 'MOMENTO' ? "text-pink-600" : (sticker.isNucleo ? "text-amber-600" : "text-gray-800")
             )}>
               {sticker.bottomText}
             </span>
@@ -91,7 +91,7 @@ export function StickerItem({ sticker, className, isPlaceholder, positionNumber 
         </div>
 
         <div className="text-[7px] text-center leading-tight mt-0.5 mb-0.5 font-medium text-gray-800">
-          Mais um dia incrível com a família EAC 🙌
+          {sticker.rarity === 'MOMENTO' ? 'Mais um momento inesquecível ✨' : 'Mais um dia incrível com a família EAC 🙌'}
           <div className="text-[#0f4c81] mt-0.5 flex items-center justify-center gap-1">
              <span className="font-bold">#EACPorciuncula</span>
              <span className="font-bold">#CristoNosUne</span>

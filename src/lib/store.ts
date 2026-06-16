@@ -15,7 +15,7 @@ export interface Sticker {
   bottomText: string;
   isNucleo: boolean;
   encounterId: string;
-  rarity: 'COMUM' | 'ESPECIAL';
+  rarity: 'COMUM' | 'ESPECIAL' | 'MOMENTO';
   page: number; // Album page (max 7 per page)
   position: number; // 1-7
 }
