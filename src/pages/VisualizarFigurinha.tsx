@@ -49,7 +49,7 @@ export function VisualizarFigurinha() {
          } else {
             // Mapeia do banco para a interface local
             const encounterName = data.encontros?.nome || 'EAC';
-            const isNucleo = data.tipo === 'NÚCLEO' || data.texto_inferior === 'NÚCLEO';
+            const isNucleo = data.tipo === 'NÚCLEO' || data.texto_inferior?.startsWith('NÚCLEO');
             const isMomento = data.texto_inferior === 'RECORDAÇÃO OFICIAL';
 
             const mapped = {

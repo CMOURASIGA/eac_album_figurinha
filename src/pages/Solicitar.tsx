@@ -17,6 +17,8 @@ export function Solicitar() {
   const [dob, setDob] = useState(''); // Only used if PESSOA
   const [encounterId, setEncounterId] = useState(encounters[0]?.id || '');
   const [isNucleo, setIsNucleo] = useState(false); // Only if PESSOA
+  const [equipeNucleo, setEquipeNucleo] = useState(''); // Only if isNucleo
+
 
   React.useEffect(() => {
     if (encounters.length > 0 && !encounters.some(e => e.id === encounterId)) {
@@ -73,7 +75,7 @@ export function Solicitar() {
     e.preventDefault();
     
     if (stickerType === 'PESSOA') {
-      if (!name || !dob || (!encounterId && !isNucleo) || !photoUrl) {
+      if (!name || !dob || (!encounterId && !isNucleo) || !photoUrl || (isNucleo && !equipeNucleo)) {
         alert('Preencha os campos obrigatórios e envie uma foto.');
         return;
       }
@@ -103,7 +105,11 @@ export function Solicitar() {
 
       const encounterName = encounters.find(e => e.id === finalEncounterId)?.name || 'EAC';
       
-      const bottomText = stickerType === 'MOMENTO' ? 'RECORDAÇÃO OFICIAL' : (isNucleo ? 'NÚCLEO' : encounterName);
+      let nucleoText = 'NÚCLEO';
+      if (equipeNucleo) {
+          nucleoText = `NÚCLEO - ${equipeNucleo.toUpperCase()}`;
+      }
+      const bottomText = stickerType === 'MOMENTO' ? 'RECORDAÇÃO OFICIAL' : (isNucleo ? nucleoText : encounterName);
       const isNucl = stickerType === 'PESSOA' ? isNucleo : false;
       const rarity = stickerType === 'MOMENTO' ? 'MOMENTO' : (isNucl ? 'ESPECIAL' : 'COMUM');
 
@@ -248,17 +254,39 @@ export function Solicitar() {
           </div>
 
           {stickerType === 'PESSOA' && (
-            <div className="flex items-center">
-               <input 
-                 id="isNucleo"
-                 type="checkbox"
-                 checked={isNucleo}
-                 onChange={(e) => setIsNucleo(e.target.checked)}
-                 className="h-4 w-4 text-[#0f4c81] rounded border-gray-300 focus:ring-[#0f4c81]"
-               />
-               <label htmlFor="isNucleo" className="ml-2 block text-sm text-gray-800 font-medium">
-                  Faço parte do Núcleo
-               </label>
+            <div className="space-y-4">
+              <div className="flex items-center">
+                 <input 
+                   id="isNucleo"
+                   type="checkbox"
+                   checked={isNucleo}
+                   onChange={(e) => {
+                       setIsNucleo(e.target.checked);
+                       if (!e.target.checked) setEquipeNucleo('');
+                   }}
+                   className="h-4 w-4 text-[#0f4c81] rounded border-gray-300 focus:ring-[#0f4c81]"
+                 />
+                 <label htmlFor="isNucleo" className="ml-2 block text-sm text-gray-800 font-medium">
+                    Faço parte do Núcleo
+                 </label>
+              </div>
+
+              {isNucleo && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Equipe do Núcleo
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={20}
+                    placeholder="Ex: CANTO, COZINHA, BOA VONTADE"
+                    value={equipeNucleo}
+                    onChange={e => setEquipeNucleo(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-300 rounded-md py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0f4c81]"
+                    required={isNucleo}
+                  />
+                </div>
+              )}
             </div>
           )}
 
@@ -336,7 +364,7 @@ export function Solicitar() {
                         name: name.toUpperCase() || 'SEU NOME',
                         photoUrl: photoUrl,
                         encounterId: encounterId,
-                        bottomText: isNucleo ? 'NÚCLEO' : (encounters.find(e => e.id === encounterId)?.name || 'EAC'),
+                        bottomText: stickerType === 'MOMENTO' ? 'RECORDAÇÃO OFICIAL' : (isNucleo ? (equipeNucleo ? `NÚCLEO - ${equipeNucleo.toUpperCase()}` : 'NÚCLEO') : (encounters.find(e => e.id === encounterId)?.name || 'EAC')),
                         isNucleo: isNucleo,
                         rarity: isNucleo ? 'ESPECIAL' : 'COMUM',
                         page: 1,
