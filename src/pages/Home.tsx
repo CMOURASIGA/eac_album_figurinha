@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useStore } from '../lib/store';
 import { AlbumPage } from '../components/AlbumPage';
+import { EncounterPage } from '../components/EncounterPage';
 import { BookOpen, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -46,6 +47,15 @@ export function Home() {
     });
     return Array.from(pageMap.entries()).sort((a, b) => a[0] - b[0]);
   }, [commonStickers]);
+
+  const encounterPages = useMemo(() => {
+    const chunks = [];
+    const filteredEncounters = selectedEncounter === 'all' ? encounters : encounters.filter(e => e.id === selectedEncounter);
+    for (let i = 0; i < filteredEncounters.length; i += 8) {
+      chunks.push(filteredEncounters.slice(i, i + 8));
+    }
+    return chunks;
+  }, [encounters, selectedEncounter]);
 
   return (
     <div className={`min-h-[calc(100vh-64px)] bg-[#07243c] py-6 px-4 sm:px-6 lg:px-8 pb-24 flex flex-col items-center ${!albumOpen ? 'justify-center' : 'justify-start'}`}>
@@ -143,18 +153,25 @@ export function Home() {
               </div>
             </div>
 
-            {nucleoPages.length === 0 && commonPages.length === 0 ? (
+            {encounterPages.length === 0 && nucleoPages.length === 0 && commonPages.length === 0 ? (
               <div className="bg-[#0f4c81] rounded-xl shadow-2xl p-12 text-center border border-dashed border-white/30 backdrop-blur-md">
                 <div className="mx-auto w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mb-4 ring-4 ring-white/5">
                    <BookOpen className="h-8 w-8 text-blue-200" />
                 </div>
                 <h2 className="text-xl font-bold text-white mb-2">Seu Álbum está Vazio</h2>
                 <p className="text-blue-200/80">
-                  Escaneie figurinhas na aba "Escanear" ou crie a sua para começar a colecionar!
+                  Nenhum encontro ou figurinha encontrada.
                 </p>
               </div>
             ) : (
               <div className="space-y-12 w-full">
+                {encounterPages.map((pageEncounters, i) => (
+                  <EncounterPage 
+                    key={`enc-${i}`} 
+                    pageNumber={i + 1} 
+                    encounters={pageEncounters} 
+                  />
+                ))}
                 {nucleoPages.map(([pageNumber, pageStickers]) => (
                   <AlbumPage 
                     key={`nucleo-${pageNumber}`} 

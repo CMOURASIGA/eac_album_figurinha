@@ -43,9 +43,9 @@ function AppContent() {
     async function syncEncounters() {
       const { data, error } = await supabase
         .from('encontros')
-        .select('id, nome')
+        .select('id, nome, numero, logo_url')
         .not('numero', 'is', null)
-        .order('nome', { ascending: true }); 
+        .order('numero', { ascending: false }); 
 
       if (error) {
         console.error('Error fetching encounters:', error);
@@ -53,7 +53,7 @@ function AppContent() {
          setEncounters(data.map(d => ({
             id: d.id,
             name: d.nome,
-            logoUrl: 'https://i.imgur.com/c5XQ7TW.png' // Default logo, since columns mostly are missing it
+            logoUrl: d.logo_url || 'https://i.imgur.com/c5XQ7TW.png'
          })));
       }
     }

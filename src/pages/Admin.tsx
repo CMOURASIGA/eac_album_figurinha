@@ -62,7 +62,7 @@ export function Admin() {
     setEditingUrl(currentUrl || '');
   };
 
-  const saveLogo = (encId: string) => {
+  const saveLogo = async (encId: string) => {
     let finalUrl = editingUrl.trim();
     
     // Convert base Imgur links (e.g. imgur.com/XXXXX) to direct image links
@@ -72,8 +72,15 @@ export function Admin() {
       finalUrl = `https://i.imgur.com/${idPart}.png`;
     }
 
-    updateEncounterLogo(encId, finalUrl);
-    setEditingEncounterId(null);
+    try {
+      const { error } = await supabase.from('encontros').update({ logo_url: finalUrl }).eq('id', encId);
+      if (error) throw error;
+      updateEncounterLogo(encId, finalUrl);
+      setEditingEncounterId(null);
+    } catch (err) {
+      console.error("Erro ao atualizar logo:", err);
+      alert("Erro ao atualizar logo no banco de dados.");
+    }
   };
 
   if (!isAuthenticated) {
