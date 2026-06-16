@@ -44,6 +44,7 @@ function AppContent() {
       const { data, error } = await supabase
         .from('encontros')
         .select('id, nome')
+        .not('numero', 'is', null)
         .order('nome', { ascending: true }); 
 
       if (error) {
