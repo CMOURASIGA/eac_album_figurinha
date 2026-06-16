@@ -10,6 +10,7 @@ import { VisualizarEncontro } from './pages/VisualizarEncontro';
 import { Splash } from './components/Splash';
 import { supabase } from './lib/supabase';
 import { useStore } from './lib/store';
+import { syncLocalStickers } from './lib/syncStickers';
 
 import { Ajuda } from './pages/Ajuda';
 
@@ -51,11 +52,14 @@ function AppContent() {
       if (error) {
         console.error('Error fetching encounters:', error);
       } else if (data) {
-         setEncounters(data.map(d => ({
+         const mapped = data.map(d => ({
             id: d.id,
             name: d.nome,
             logoUrl: d.logo_url || 'https://i.imgur.com/c5XQ7TW.png'
-         })));
+         }));
+         setEncounters(mapped);
+         const { stickers } = useStore.getState();
+         syncLocalStickers(stickers, mapped);
       }
     }
     syncEncounters();
