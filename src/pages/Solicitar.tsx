@@ -69,15 +69,15 @@ export function Solicitar() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !dob || !encounterId || !photoUrl) {
-      alert('Preencha todos os campos e envie uma foto.');
+    if (!name || !dob || (!encounterId && !isNucleo) || !photoUrl) {
+      alert('Preencha os campos obrigatórios e envie uma foto.');
       return;
     }
 
     setIsLoading(true);
 
     try {
-      if (encounters.length === 0) {
+      if (encounters.length === 0 && !isNucleo) {
          throw new Error("Não foi possível carregar os encontros (EAC) do banco de dados. Por favor, recarregue a página antes de continuar.");
       }
       
@@ -85,7 +85,7 @@ export function Solicitar() {
       
       // Defesa contra estados defasados no momento do submit: 
       // Se o ID selecionado não estiver na lista de encontros carregados do banco, pega o primeiro válido.
-      if (!encounters.some(e => e.id === finalEncounterId) && encounters.length > 0) {
+      if (!isNucleo && !encounters.some(e => e.id === finalEncounterId) && encounters.length > 0) {
           finalEncounterId = encounters[0].id;
           console.warn("Estado do encounterId estava defasado. Forçando para o primeiro válido: ", finalEncounterId);
       }
@@ -94,7 +94,7 @@ export function Solicitar() {
 
       const payload = {
           nome: name.toUpperCase(),
-          encontro_id: finalEncounterId?.trim(),
+          encontro_id: isNucleo ? null : finalEncounterId?.trim(),
           foto_url: photoUrl,
           texto_inferior: isNucleo ? 'NÚCLEO' : encounterName
       };
@@ -190,12 +190,13 @@ export function Solicitar() {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">EAC Realizado</label>
+            <label className={`block text-sm font-medium mb-1 ${isNucleo ? 'text-gray-400' : 'text-gray-700'}`}>EAC Realizado</label>
             <select 
               value={encounterId}
               onChange={e => setEncounterId(e.target.value)}
-              className="w-full bg-gray-50 border border-gray-300 rounded-md py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0f4c81]"
-              required
+              className={`w-full bg-gray-50 border rounded-md py-2.5 px-3 focus:outline-none focus:ring-2 focus:ring-[#0f4c81] ${isNucleo ? 'opacity-50 cursor-not-allowed border-gray-200' : 'border-gray-300'}`}
+              required={!isNucleo}
+              disabled={isNucleo}
             >
               <option disabled value="">Selecione...</option>
               {encounters.map(enc => (
