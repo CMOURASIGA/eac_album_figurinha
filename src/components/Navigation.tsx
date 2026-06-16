@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { BookOpen, Star, PlusCircle, Shield, QrCode } from 'lucide-react';
+import { BookOpen, Star, PlusCircle, Shield, QrCode, HelpCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export function Navigation() {
@@ -51,6 +51,10 @@ export function Navigation() {
                   <QrCode className="h-4 w-4" />
                   <span>Escanear</span>
                 </NavLink>
+                <NavLink to="/ajuda" className={navLinkClass}>
+                  <HelpCircle className="h-4 w-4" />
+                  <span>Ajuda</span>
+                </NavLink>
               </div>
             </div>
             
@@ -81,6 +85,10 @@ export function Navigation() {
            <NavLink to="/scan" className={mobileNavLinkClass}>
               <QrCode className="h-6 w-6 mb-1" />
               <span>Escanear</span>
+           </NavLink>
+           <NavLink to="/ajuda" className={mobileNavLinkClass}>
+              <HelpCircle className="h-6 w-6 mb-1" />
+              <span>Ajuda</span>
            </NavLink>
         </div>
       )}

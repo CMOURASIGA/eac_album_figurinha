@@ -37,11 +37,24 @@ export function Admin() {
     }
   };
 
-  const handleAddEncounter = (e: React.FormEvent) => {
+  const handleAddEncounter = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newEncounterName.trim()) return;
-    addEncounter(newEncounterName.trim());
-    setNewEncounterName('');
+
+    try {
+      const { data, error } = await supabase.from('encontros').insert({
+        nome: newEncounterName.trim(),
+        status: 'PLANEJADO'
+      }).select().single();
+
+      if (error) throw error;
+
+      addEncounter(data.id, newEncounterName.trim());
+      setNewEncounterName('');
+    } catch (err) {
+      console.error("Erro ao adicionar encontro:", err);
+      alert("Erro ao adicionar encontro no banco de dados.");
+    }
   };
 
   const startEditingLogo = (encId: string, currentUrl?: string) => {

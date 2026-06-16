@@ -16,6 +16,12 @@ export function Solicitar() {
   const [encounterId, setEncounterId] = useState(encounters[0]?.id || '');
   const [isNucleo, setIsNucleo] = useState(false);
 
+  React.useEffect(() => {
+    if (encounters.length > 0 && !encounters.some(e => e.id === encounterId)) {
+      setEncounterId(encounters[0].id);
+    }
+  }, [encounters, encounterId]);
+
   const [rawImageUrl, setRawImageUrl] = useState('');
   const [photoUrl, setPhotoUrl] = useState('');
   
@@ -71,28 +77,37 @@ export function Solicitar() {
     setIsLoading(true);
 
     try {
-      // Migrate old IDs to prevent UUID parsing errors
-      let finalEncounterId = encounterId;
-      if (finalEncounterId === '1') finalEncounterId = '00000000-0000-0000-0000-000000000001';
-      if (finalEncounterId === '2') finalEncounterId = '00000000-0000-0000-0000-000000000002';
+      if (encounters.length === 0) {
+         throw new Error("Não foi possível carregar os encontros (EAC) do banco de dados. Por favor, recarregue a página antes de continuar.");
+      }
       
-      // If it's still not a valid uuid (like an old random base36 string), generate a fallback
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (!uuidRegex.test(finalEncounterId)) {
-          finalEncounterId = '00000000-0000-0000-0000-000000000001'; // Default fallback
+      let finalEncounterId = encounterId;
+      
+      // Defesa contra estados defasados no momento do submit: 
+      // Se o ID selecionado não estiver na lista de encontros carregados do banco, pega o primeiro válido.
+      if (!encounters.some(e => e.id === finalEncounterId) && encounters.length > 0) {
+          finalEncounterId = encounters[0].id;
+          console.warn("Estado do encounterId estava defasado. Forçando para o primeiro válido: ", finalEncounterId);
       }
 
-      // Direct insertion bypassing admin
-      const encounterName = encounters.find(e => e.id === encounterId)?.name || 'EAC';
+      const encounterName = encounters.find(e => e.id === finalEncounterId)?.name || 'EAC';
 
-      const { data, error } = await supabase.from('figurinha').insert({
+      const payload = {
           nome: name.toUpperCase(),
-          encontro_id: finalEncounterId,
+          encontro_id: finalEncounterId?.trim(),
           foto_url: photoUrl,
           texto_inferior: isNucleo ? 'NÚCLEO' : encounterName
-      }).select().single();
+      };
+      
+      console.log("Submitting figurinha with payload:", payload);
+
+      const { data, error } = await supabase.from('figurinha').insert(payload).select().single();
 
       if (error) {
+          console.error("Insert error:", error);
+          if (error.code === '23503') {
+             throw new Error(`Erro: O encontro (EAC) selecionado não existe no banco. ID enviado: "${finalEncounterId}". Recarregue e tente novamente.`);
+          }
           throw error;
       }
 
@@ -101,7 +116,7 @@ export function Solicitar() {
           requestId: 'self',
           name: name.toUpperCase(),
           photoUrl: photoUrl,
-          encounterId: encounterId,
+          encounterId: finalEncounterId,
           bottomText: isNucleo ? 'NÚCLEO' : encounterName,
           isNucleo: isNucleo,
           rarity: isNucleo ? 'ESPECIAL' : 'COMUM',
@@ -115,9 +130,9 @@ export function Solicitar() {
         navigate(`/figurinha/${data.id}`);
       }, 2000);
 
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Erro ao criar figurinha.');
+      alert(error.message || 'Erro ao criar figurinha.');
     } finally {
       setIsLoading(false);
     }

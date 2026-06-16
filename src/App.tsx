@@ -7,6 +7,10 @@ import { Admin } from './pages/Admin';
 import { Scan } from './pages/Scan';
 import { VisualizarFigurinha } from './pages/VisualizarFigurinha';
 import { Splash } from './components/Splash';
+import { supabase } from './lib/supabase';
+import { useStore } from './lib/store';
+
+import { Ajuda } from './pages/Ajuda';
 
 function Layout() {
   return (
@@ -28,10 +32,32 @@ export default function App() {
 }
 
 function AppContent() {
+  const setEncounters = useStore(state => state.setEncounters);
+
   const [showSplash, setShowSplash] = useState(() => {
     // Check if it's the first time in this session
     return !sessionStorage.getItem('splashShown');
   });
+
+  useEffect(() => {
+    async function syncEncounters() {
+      const { data, error } = await supabase
+        .from('encontros')
+        .select('id, nome')
+        .order('nome', { ascending: true }); 
+
+      if (error) {
+        console.error('Error fetching encounters:', error);
+      } else if (data) {
+         setEncounters(data.map(d => ({
+            id: d.id,
+            name: d.nome,
+            logoUrl: 'https://i.imgur.com/c5XQ7TW.png' // Default logo, since columns mostly are missing it
+         })));
+      }
+    }
+    syncEncounters();
+  }, [setEncounters]);
 
   const handleSplashComplete = () => {
     sessionStorage.setItem('splashShown', 'true');
@@ -47,6 +73,7 @@ function AppContent() {
             <Route index element={<Home />} />
             <Route path="solicitar" element={<Solicitar />} />
             <Route path="scan" element={<Scan />} />
+            <Route path="ajuda" element={<Ajuda />} />
             <Route path="figurinha/:id" element={<VisualizarFigurinha />} />
             <Route path="admin" element={<Admin />} />
           </Route>

@@ -25,18 +25,16 @@ interface AppState {
   stickers: Sticker[];
   
   // Actions
-  addEncounter: (name: string) => void;
+  addEncounter: (id: string, name: string) => void;
   updateEncounterLogo: (id: string, logoUrl: string) => void;
   deleteSticker: (id: string) => void;
   reorderSticker: (id: string, newPage: number, newPosition: number) => void;
   saveSharedSticker: (sticker: Sticker) => void;
   resetStore: () => void;
+  setEncounters: (encounters: Encounter[]) => void;
 }
 
-const initialEncounters: Encounter[] = [
-  { id: '00000000-0000-0000-0000-000000000001', name: '35º EAC Porciúncula', logoUrl: 'https://i.imgur.com/c5XQ7TW.png' },
-  { id: '00000000-0000-0000-0000-000000000002', name: '36º EAC Porciúncula', logoUrl: 'https://i.imgur.com/LA9Egm4.png' },
-];
+const initialEncounters: Encounter[] = [];
 
 export const useStore = create<AppState>()(
   persist(
@@ -44,9 +42,9 @@ export const useStore = create<AppState>()(
       encounters: initialEncounters,
       stickers: [],
 
-      addEncounter: (name) => {
+      addEncounter: (id, name) => {
         const newEncounter = {
-          id: crypto.randomUUID(),
+          id,
           name,
         };
         set((state) => ({ encounters: [...state.encounters, newEncounter] }));
@@ -110,9 +108,17 @@ export const useStore = create<AppState>()(
       },
 
       resetStore: () => set({ stickers: [] }),
+      setEncounters: (encounters) => set({ encounters }),
     }),
     {
       name: 'eac-album-storage',
+      partialize: (state) => ({ stickers: state.stickers }),
+      merge: (persistedState: any, currentState) => {
+        return {
+          ...currentState,
+          stickers: persistedState?.stickers || [],
+        };
+      },
     }
   )
 );
