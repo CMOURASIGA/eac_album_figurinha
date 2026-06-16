@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import type { Encounter } from '../lib/store';
 
 interface EncounterPageProps {
@@ -8,6 +9,7 @@ interface EncounterPageProps {
 
 export const EncounterPage: React.FC<EncounterPageProps> = ({ pageNumber, encounters }) => {
   const slots = Array.from({ length: 8 }, (_, i) => i);
+  const navigate = useNavigate();
 
   return (
     <div className="bg-[#0f4c81] rounded-xl shadow-2xl border border-blue-900/50 overflow-hidden mb-12 max-w-4xl mx-auto ring-4 ring-[#0f4c81]/20">
@@ -29,7 +31,11 @@ export const EncounterPage: React.FC<EncounterPageProps> = ({ pageNumber, encoun
             const encounter = encounters[index];
             if (encounter) {
               return (
-                <div key={encounter.id} className="flex flex-col items-center justify-center p-4 bg-white rounded-xl shadow-lg border-[6px] border-white max-w-[220px] mx-auto w-full aspect-[3/4] relative rotate-1 hover:rotate-0 transition-transform">
+                <div 
+                  key={encounter.id} 
+                  onClick={() => navigate(`/encontro/${encounter.id}`)}
+                  className="flex flex-col items-center justify-center p-4 bg-white rounded-xl shadow-lg border-[6px] border-white max-w-[220px] mx-auto w-full aspect-[3/4] relative rotate-1 hover:rotate-0 transition-transform cursor-pointer hover:scale-105"
+                >
                   {encounter.logoUrl ? (
                     <img src={encounter.logoUrl} referrerPolicy="no-referrer" alt={encounter.name} className="w-full h-full object-contain drop-shadow-xl" />
                   ) : (

@@ -6,6 +6,7 @@ import { Solicitar } from './pages/Solicitar';
 import { Admin } from './pages/Admin';
 import { Scan } from './pages/Scan';
 import { VisualizarFigurinha } from './pages/VisualizarFigurinha';
+import { VisualizarEncontro } from './pages/VisualizarEncontro';
 import { Splash } from './components/Splash';
 import { supabase } from './lib/supabase';
 import { useStore } from './lib/store';
@@ -76,6 +77,7 @@ function AppContent() {
             <Route path="scan" element={<Scan />} />
             <Route path="ajuda" element={<Ajuda />} />
             <Route path="figurinha/:id" element={<VisualizarFigurinha />} />
+            <Route path="encontro/:id" element={<VisualizarEncontro />} />
             <Route path="admin" element={<Admin />} />
           </Route>
         </Routes>
