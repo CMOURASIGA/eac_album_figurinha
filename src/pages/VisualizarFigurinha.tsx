@@ -15,6 +15,7 @@ export function VisualizarFigurinha() {
   const [stickerData, setStickerData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [isOldFormat, setIsOldFormat] = useState(false);
   
   const isAlreadySaved = stickers.some(s => s.id === id);
 
@@ -38,7 +39,12 @@ export function VisualizarFigurinha() {
            .eq('id', id)
            .single();
 
-         if (error || !data) {
+         if (error?.code === '22P02') {
+             setStickerData(null);
+             setIsOldFormat(true);
+             setError(true);
+             // Para não poluir o console, tratamos a falha de sintaxe UUID como normal
+         } else if (error || !data) {
             setError(true);
          } else {
             // Mapeia do banco para a interface local
@@ -91,10 +97,21 @@ export function VisualizarFigurinha() {
             ) : error || !stickerData ? (
                 <div className="flex flex-col items-center justify-center p-12 bg-white rounded-xl shadow-sm border border-red-200">
                    <AlertCircle className="text-red-500 h-16 w-16 mb-4" />
-                   <h2 className="text-xl font-bold text-gray-900 mb-2 text-center">Figurinha não encontrada</h2>
-                   <p className="text-gray-500 text-center">
-                     Este QR Code pode ser inválido ou a figurinha foi removida.
-                   </p>
+                   {isOldFormat ? (
+                       <>
+                         <h2 className="text-xl font-bold text-gray-900 mb-2 text-center">Figurinha desatualizada</h2>
+                         <p className="text-gray-500 text-center">
+                           Este QR Code é de uma versão antiga do sistema. <br/><br/><strong>Peça para a pessoa dona desta figurinha abrir o álbum dela.</strong> O sistema irá atualizar o QR Code automaticamente para a nova versão!
+                         </p>
+                       </>
+                   ) : (
+                       <>
+                         <h2 className="text-xl font-bold text-gray-900 mb-2 text-center">Figurinha não encontrada</h2>
+                         <p className="text-gray-500 text-center">
+                           Este QR Code pode ser inválido ou a figurinha foi removida.
+                         </p>
+                       </>
+                   )}
                 </div>
             ) : (
                 <div className="space-y-6">
