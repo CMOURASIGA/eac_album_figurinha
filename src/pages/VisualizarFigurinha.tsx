@@ -34,7 +34,7 @@ export function VisualizarFigurinha() {
        try {
          const { data, error } = await supabase
            .from('figurinha')
-           .select('*, encontro(nome)')
+           .select('*, encontros(nome)')
            .eq('id', id)
            .single();
 
@@ -42,7 +42,7 @@ export function VisualizarFigurinha() {
             setError(true);
          } else {
             // Mapeia do banco para a interface local
-            const encounterName = data.encontro?.nome || 'EAC';
+            const encounterName = data.encontros?.nome || 'EAC';
             const isNucleo = data.tipo === 'NÚCLEO' || data.texto_inferior === 'NÚCLEO';
             const isMomento = data.texto_inferior === 'RECORDAÇÃO OFICIAL';
 

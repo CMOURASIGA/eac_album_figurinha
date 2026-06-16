@@ -15,8 +15,11 @@ export function Scan() {
         if (url.pathname.includes('/figurinha/')) {
            const id = url.pathname.split('/figurinha/')[1];
            navigate(`/figurinha/${id}`);
+        } else if (url.pathname.includes('/encontro/')) {
+           const id = url.pathname.split('/encontro/')[1];
+           navigate(`/encontro/${id}`);
         } else {
-           setError('QR Code não é de uma figurinha do sistema.');
+           setError('QR Code não reconhecido pelo sistema.');
         }
       } catch {
         // Se for só o ID direto
